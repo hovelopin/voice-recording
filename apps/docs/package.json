@@ -14,7 +14,8 @@
     "@repo/ui": "workspace:*",
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-voice-visualizer": "^2.0.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
