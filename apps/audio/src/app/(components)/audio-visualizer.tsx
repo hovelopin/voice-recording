@@ -73,19 +73,31 @@ const draw = (
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 막대에 적용할 수직 그라데이션 생성
+  // // 막대에 적용할 수직 그라데이션 생성
+  // const gradient = ctx.createLinearGradient(
+  //   0,
+  //   amp - baseHeight, // 그라데이션 시작 위치
+  //   0,
+  //   amp + baseHeight // 그라데이션 종료 위치
+  // );
+  // gradient.addColorStop(0, "#00ff87"); // 상단 색상 (청록색)
+  // gradient.addColorStop(1, "#60efff"); // 하단 색상 (하늘색)
+
+  // 수평 그라데이션 생성 (좌 -> 우)
   const gradient = ctx.createLinearGradient(
     0,
-    amp - baseHeight, // 그라데이션 시작 위치
-    0,
-    amp + baseHeight // 그라데이션 종료 위치
+    0, // 시작점 (x, y)
+    canvas.width,
+    0 // 종료점 (x, y)
   );
-  gradient.addColorStop(0, "#00ff87"); // 상단 색상 (청록색)
-  gradient.addColorStop(1, "#60efff"); // 하단 색상 (하늘색)
+
+  gradient.addColorStop(0, "#0061ff"); // 시작 색상
+  gradient.addColorStop(0.5, "#00ff87"); // 중간 색상
+  gradient.addColorStop(1, "#60efff"); // 종료 색상
 
   // 네온 효과를 위한 그림자 설정
-  ctx.shadowBlur = 15; // 그림자의 흐림 정도
-  ctx.shadowColor = "#00ff87"; // 그림자 색상
+  // ctx.shadowBlur = 10; // 그림자의 흐림 정도
+  ctx.shadowColor = "#60efff"; // 그림자 색상
 
   // 캔버스 너비에 맞는 총 막대 개수 계산
   const totalBars = Math.floor(canvas.width / (barWidth + gap));
@@ -131,7 +143,6 @@ const AudioVisualizer = () => {
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
 
-      console.log("analyser", analyser);
       analyser.fftSize = 256; // FFT 크기 조정
       analyser.minDecibels = -70; // 더 민감하게 반응하도록 조정
       analyser.maxDecibels = -30;
@@ -144,6 +155,7 @@ const AudioVisualizer = () => {
       const animate = () => {
         if (!canvasRef.current || !analyserRef.current) return;
 
+        // audio analyser를 활용해서 data를 Unit8Array 형태로 만든다.
         const frequencyData = new Uint8Array(
           analyserRef.current.frequencyBinCount
         );
@@ -157,8 +169,6 @@ const AudioVisualizer = () => {
           barWidth,
           gap
         );
-
-        console.log("data", data);
 
         draw(data, canvasRef.current, barWidth, gap);
 
