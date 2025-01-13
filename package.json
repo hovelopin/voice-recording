@@ -5,6 +5,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "web:dev": "pnpm --filter web dev",
+    "audio:dev": "pnpm --filter audio dev",
     "web:build": "pnpm --filter web build",
     "web:start": "pnpm --filter web start",
     "web:docs": "pnpm --filter docs dev",
