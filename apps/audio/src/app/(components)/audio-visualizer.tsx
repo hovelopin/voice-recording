@@ -97,7 +97,7 @@ const draw = (
 
   // 네온 효과를 위한 그림자 설정
   // ctx.shadowBlur = 10; // 그림자의 흐림 정도
-  ctx.shadowColor = "#60efff"; // 그림자 색상
+  // ctx.shadowColor = "#60efff"; // 그림자 색상
 
   // 캔버스 너비에 맞는 총 막대 개수 계산
   const totalBars = Math.floor(canvas.width / (barWidth + gap));
@@ -143,10 +143,10 @@ const AudioVisualizer = () => {
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
 
-      analyser.fftSize = 256; // FFT 크기 조정
-      analyser.minDecibels = -70; // 더 민감하게 반응하도록 조정
-      analyser.maxDecibels = -30;
-      analyser.smoothingTimeConstant = 0.8; // 부드러운 움직임을 위해 조정
+      // analyser.fftSize = 256; // FFT 크기 조정
+      // analyser.minDecibels = -70; // 더 민감하게 반응하도록 조정
+      // analyser.maxDecibels = -30;
+      // analyser.smoothingTimeConstant = 0.8; // 부드러운 움직임을 위해 조정
 
       source.connect(analyser);
       analyserRef.current = analyser;
