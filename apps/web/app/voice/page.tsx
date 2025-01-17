@@ -1,8 +1,9 @@
 'use client';
 
-import AudioRecorder from "./_components/audio-recorder";
+import { type FC } from 'react';
+import AudioRecorder from './_components/audio-recorder';
 
-export default function Voice(){
+const Voice: FC = () => {
   const handleRecordingComplete = (blob: Blob) => {
     console.log('Recording completed:', blob);
   };
@@ -13,4 +14,6 @@ export default function Voice(){
       <AudioRecorder onRecordingComplete={handleRecordingComplete} />
     </div>
   );
-}
+};
+
+export default Voice;

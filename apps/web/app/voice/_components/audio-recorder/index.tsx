@@ -7,7 +7,6 @@ interface AudioRecorderProps {
 }
 
 const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
-  // 녹음 관련된 상태
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -30,7 +29,6 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
         const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
-        // stop될때 음성 기록을
         onRecordingComplete?.(blob);
       };
 
@@ -39,7 +37,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
-  }, []);
+  }, [onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -63,7 +61,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   };
 };
 
-const AudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
+const AudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComplete }) => {
   const { isRecording, audioUrl, startRecording, stopRecording, getBlob } = useAudioRecorder({
     onRecordingComplete,
   });
