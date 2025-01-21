@@ -9,6 +9,7 @@
     "web:build": "pnpm --filter web build",
     "web:start": "pnpm --filter web start",
     "web:docs": "pnpm --filter docs dev",
+    "recorder:dev": "pnpm --filter recorder dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
