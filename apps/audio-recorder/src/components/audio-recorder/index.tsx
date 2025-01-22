@@ -338,7 +338,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
           />
           {audioDuration !== null && (
             <p className={styles.durationText}>
-              녹음 길이: {formatDuration(audioDuration)}
+              업로드 된 녹음 길이: {formatDuration(audioDuration)}
             </p>
           )}
           <TimeJumpButtons />
