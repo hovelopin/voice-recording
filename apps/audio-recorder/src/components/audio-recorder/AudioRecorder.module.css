@@ -73,3 +73,23 @@
   color: #6b7280;
   text-align: center;
 }
+
+.timeJumpGroup {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.timeJumpButton {
+  composes: button;
+  background-color: #3b82f6;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timeJumpButton:hover {
+  background-color: #2563eb;
+}
