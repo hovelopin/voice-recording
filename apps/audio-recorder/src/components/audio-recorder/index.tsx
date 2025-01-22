@@ -144,23 +144,23 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   }, [isRecording]);
 
   // 페이지 가시성 변화 감지
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && isRecording && !isPaused) {
-        // 페이지가 숨겨질 때 (전화가 왔을 때 등) 녹음 일시정지
-        pauseRecording();
-      } else if (!document.hidden && isRecording && isPaused) {
-        // 페이지가 다시 보일 때 (전화가 끊겼을 때 등) 녹음 재개
-        resumeRecording();
-      }
-    };
+  // useEffect(() => {
+  //   const handleVisibilityChange = () => {
+  //     if (document.hidden && isRecording && !isPaused) {
+  //       // 페이지가 숨겨질 때 (전화가 왔을 때 등) 녹음 일시정지
+  //       pauseRecording();
+  //     } else if (!document.hidden && isRecording && isPaused) {
+  //       // 페이지가 다시 보일 때 (전화가 끊겼을 때 등) 녹음 재개
+  //       resumeRecording();
+  //     }
+  //   };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isRecording, isPaused, pauseRecording, resumeRecording]);
+  //   return () => {
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, [isRecording, isPaused, pauseRecording, resumeRecording]);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
