@@ -21,11 +21,11 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   const startTimer = useCallback(() => {
     if (intervalRef.current) return;
 
-    const startTime = Date.now() - recordingTime * 1000; // 일시정지 후 재개를 위한 계산
+    // 0.1초마다 recordingTime을 0.1초씩 증가
     intervalRef.current = setInterval(() => {
-      setRecordingTime((Date.now() - startTime) / 1000);
+      setRecordingTime((prev) => prev + 0.1);
     }, 100);
-  }, [recordingTime]);
+  }, []);
 
   // 타이머 정지 함수
   const stopTimer = useCallback(() => {
@@ -115,6 +115,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     ) {
       mediaRecorderRef.current.pause();
       setIsPaused(true);
+      stopTimer();
     }
   }, []);
 
