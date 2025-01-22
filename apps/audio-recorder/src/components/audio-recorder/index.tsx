@@ -257,10 +257,9 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    const secs = (seconds % 60).toFixed(1); // 소수점 한자리까지 표시
-    return `${mins}:${secs.padStart(4, "0")}`; // 4는 '0.0'의 길이
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
-
   // 특정 시간으로 이동하는 컴포넌트!
   const TimeJumpButtons = () => (
     <div className={styles.timeJumpGroup}>
