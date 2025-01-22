@@ -10,9 +10,42 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Blob 파일의 재생 시간을 체크하는 함수
+  const checkAudioDuration = (blob: Blob) => {
+    return new Promise((resolve, reject) => {
+      // Blob을 ArrayBuffer로 변환
+      const reader = new FileReader();
+      reader.onload = function () {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        const audioContext = new AudioContext();
+
+        // ArrayBuffer를 오디오 데이터로 디코딩
+        audioContext.decodeAudioData(
+          arrayBuffer,
+          function (buffer) {
+            // 오디오의 길이(초 단위) 반환
+            console.log("buffer.duration", buffer.duration);
+            setAudioDuration(buffer.duration);
+            resolve(buffer.duration);
+          },
+          function (error) {
+            reject("Audio decoding failed: " + error);
+          }
+        );
+      };
+
+      reader.onerror = function (error) {
+        reject("File reading failed: " + error);
+      };
+
+      reader.readAsArrayBuffer(blob); // Blob을 ArrayBuffer로 읽기
+    });
+  };
 
   const startRecording = useCallback(async () => {
     try {
@@ -32,6 +65,9 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
         const blob = new Blob(chunksRef.current, { type: "audio/wav" });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
+
+        // 녹음이 완료되면 Blob 파일의 길이 체크
+        checkAudioDuration(blob);
         onRecordingComplete?.(blob);
 
         // 스트림 정리
@@ -44,6 +80,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
       mediaRecorder.start();
       setIsRecording(true);
       setIsPaused(false);
+      setAudioDuration(null);
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
@@ -109,6 +146,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     isRecording,
     isPaused,
     audioUrl,
+    audioDuration,
     startRecording,
     stopRecording,
     pauseRecording,
@@ -124,6 +162,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
     isRecording,
     isPaused,
     audioUrl,
+    audioDuration,
     startRecording,
     stopRecording,
     pauseRecording,
@@ -177,6 +216,12 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const formatTime = (ms: number) => {
     const seconds = ms / 1000;
     return seconds.toFixed(3) + "초";
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = (seconds % 60).toFixed(1); // 소수점 한자리까지 표시
+    return `${mins}:${secs.padStart(4, "0")}`; // 4는 '0.0'의 길이
   };
 
   // 특정 시간으로 이동하는 컴포넌트!
@@ -255,7 +300,11 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
             className={styles.audioPlayer}
             controls
           />
-
+          {audioDuration !== null && (
+            <p className={styles.durationText}>
+              녹음 길이: {formatDuration(audioDuration)}
+            </p>
+          )}
           <TimeJumpButtons />
         </>
       )}
