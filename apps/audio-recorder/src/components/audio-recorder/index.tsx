@@ -82,7 +82,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/wav" });
+        const blob = new Blob(chunksRef.current, { type: "audio/mp4" });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
 
@@ -173,7 +173,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
 
   const getBlob = useCallback(() => {
     if (chunksRef.current.length === 0) return null;
-    return new Blob(chunksRef.current, { type: "audio/wav" });
+    return new Blob(chunksRef.current, { type: "audio/mp4" });
   }, []);
 
   return {
@@ -243,7 +243,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "recording.wav";
+      a.download = "recording.mp4";
       a.click();
       URL.revokeObjectURL(url);
     }
