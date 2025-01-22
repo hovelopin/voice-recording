@@ -2,8 +2,6 @@
   "name": "voice-recording",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
     "web:dev": "pnpm --filter web dev",
     "audio:dev": "pnpm --filter audio dev",
     "web:build": "pnpm --filter web build",
@@ -11,12 +9,10 @@
     "web:docs": "pnpm --filter docs dev",
     "recorder:dev": "pnpm --filter recorder dev",
     "recorder:build": "pnpm --filter recorder build",
-    "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "prettier": "^3.2.5",
-    "turbo": "^2.3.3",
     "typescript": "5.5.4"
   },
   "packageManager": "pnpm@9.0.0",
