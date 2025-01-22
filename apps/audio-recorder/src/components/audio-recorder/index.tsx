@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Mic, Square, Play, Download, FastForward } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Mic, Square, Play, Download, FastForward, Pause } from "lucide-react";
 import styles from "./AudioRecorder.module.css";
 
 interface AudioRecorderProps {
@@ -8,13 +8,16 @@ interface AudioRecorderProps {
 
 const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -30,24 +33,72 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         onRecordingComplete?.(blob);
+
+        // 스트림 정리
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
       };
 
       mediaRecorder.start();
       setIsRecording(true);
+      setIsPaused(false);
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
   }, [onRecordingComplete]);
 
+  const pauseRecording = useCallback(() => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+    }
+  }, []);
+
+  const resumeRecording = useCallback(() => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "paused"
+    ) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+    }
+  }, []);
+
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream
-        .getTracks()
-        .forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
       setIsRecording(false);
+      setIsPaused(false);
     }
   }, [isRecording]);
+
+  // 페이지 가시성 변화 감지
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isRecording && !isPaused) {
+        // 페이지가 숨겨질 때 (전화가 왔을 때 등) 녹음 일시정지
+        pauseRecording();
+      } else if (!document.hidden && isRecording && isPaused) {
+        // 페이지가 다시 보일 때 (전화가 끊겼을 때 등) 녹음 재개
+        resumeRecording();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isRecording, isPaused, pauseRecording, resumeRecording]);
 
   const getBlob = useCallback(() => {
     if (chunksRef.current.length === 0) return null;
@@ -56,9 +107,12 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
 
   return {
     isRecording,
+    isPaused,
     audioUrl,
     startRecording,
     stopRecording,
+    pauseRecording,
+    resumeRecording,
     getBlob,
   };
 };
@@ -66,10 +120,18 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
 const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onRecordingComplete,
 }) => {
-  const { isRecording, audioUrl, startRecording, stopRecording, getBlob } =
-    useAudioRecorder({
-      onRecordingComplete,
-    });
+  const {
+    isRecording,
+    isPaused,
+    audioUrl,
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    getBlob,
+  } = useAudioRecorder({
+    onRecordingComplete,
+  });
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -146,13 +208,22 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
             <Mic />
           </button>
         ) : (
-          <button
-            onClick={stopRecording}
-            className={styles.stopButton}
-            aria-label="Stop Recording"
-          >
-            <Square />
-          </button>
+          <>
+            <button
+              onClick={stopRecording}
+              className={styles.stopButton}
+              aria-label="Stop Recording"
+            >
+              <Square />
+            </button>
+            <button
+              onClick={isPaused ? resumeRecording : pauseRecording}
+              className={isPaused ? styles.resumeButton : styles.pauseButton}
+              aria-label={isPaused ? "Resume Recording" : "Pause Recording"}
+            >
+              {isPaused ? <Play /> : <Pause />}
+            </button>
+          </>
         )}
 
         {audioUrl && (

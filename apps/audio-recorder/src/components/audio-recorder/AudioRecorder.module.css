@@ -93,3 +93,21 @@
 .timeJumpButton:hover {
   background-color: #2563eb;
 }
+
+.pauseButton {
+  composes: button;
+  background-color: #f59e0b;
+}
+
+.pauseButton:hover {
+  background-color: #d97706;
+}
+
+.resumeButton {
+  composes: button;
+  background-color: #10b981;
+}
+
+.resumeButton:hover {
+  background-color: #059669;
+}
