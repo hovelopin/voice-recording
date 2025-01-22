@@ -7,7 +7,11 @@ function App() {
   };
 
   return (
-    <div>
+    <div
+      style={{
+        width: 400,
+      }}
+    >
       <h1>Voice Recorder</h1>
       <AudioRecorder onRecordingComplete={handleRecordingComplete} />
     </div>

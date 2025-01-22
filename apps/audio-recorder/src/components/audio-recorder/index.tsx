@@ -11,9 +11,29 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
   const [isPaused, setIsPaused] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
+  const [recordingTime, setRecordingTime] = useState<number>(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  // 타이머 시작 함수
+  const startTimer = useCallback(() => {
+    if (intervalRef.current) return;
+
+    const startTime = Date.now() - recordingTime * 1000; // 일시정지 후 재개를 위한 계산
+    intervalRef.current = setInterval(() => {
+      setRecordingTime((Date.now() - startTime) / 1000);
+    }, 100);
+  }, [recordingTime]);
+
+  // 타이머 정지 함수
+  const stopTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
 
   // Blob 파일의 재생 시간을 체크하는 함수
   const checkAudioDuration = (blob: Blob) => {
@@ -81,6 +101,8 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
       setIsRecording(true);
       setIsPaused(false);
       setAudioDuration(null);
+      setRecordingTime(0); // 타이머 초기화
+      startTimer(); // 타이머 시작
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
@@ -103,6 +125,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     ) {
       mediaRecorderRef.current.resume();
       setIsPaused(false);
+      startTimer(); // 타이머 재시작
     }
   }, []);
 
@@ -115,6 +138,8 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
       }
       setIsRecording(false);
       setIsPaused(false);
+      stopTimer(); // 타이머 정지
+      setRecordingTime(0); // 타이머 초기화
     }
   }, [isRecording]);
 
@@ -137,6 +162,15 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     };
   }, [isRecording, isPaused, pauseRecording, resumeRecording]);
 
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
   const getBlob = useCallback(() => {
     if (chunksRef.current.length === 0) return null;
     return new Blob(chunksRef.current, { type: "audio/wav" });
@@ -147,6 +181,7 @@ const useAudioRecorder = ({ onRecordingComplete }: AudioRecorderProps) => {
     isPaused,
     audioUrl,
     audioDuration,
+    recordingTime, // 녹음 중 시간 추가
     startRecording,
     stopRecording,
     pauseRecording,
@@ -163,6 +198,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
     isPaused,
     audioUrl,
     audioDuration,
+    recordingTime, // 추가
     startRecording,
     stopRecording,
     pauseRecording,
@@ -310,7 +346,11 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       )}
 
       <p className={styles.statusText}>
-        {isRecording ? "녹음중입니다." : "마이크를 눌러서 시작해주세요."}
+        {isRecording ? (
+          <>녹음중입니다. ({formatDuration(recordingTime)})</>
+        ) : (
+          "마이크를 눌러서 시작해주세요."
+        )}
       </p>
     </div>
   );
