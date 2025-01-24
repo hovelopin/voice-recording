@@ -2,11 +2,6 @@
   "name": "voice-recording",
   "private": true,
   "scripts": {
-    "web:dev": "pnpm --filter web dev",
-    "audio:dev": "pnpm --filter audio dev",
-    "web:build": "pnpm --filter web build",
-    "web:start": "pnpm --filter web start",
-    "web:docs": "pnpm --filter docs dev",
     "recorder:dev": "pnpm --filter recorder dev",
     "recorder:build": "pnpm --filter recorder build",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
