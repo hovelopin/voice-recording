@@ -1,0 +1,108 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.durationText {
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.canvas {
+  width: 600px;
+  height: 200px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: white;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.recordButton {
+  composes: button;
+  background-color: #ef4444;
+}
+
+.recordButton:hover {
+  background-color: #dc2626;
+}
+
+.stopButton {
+  composes: button;
+  background-color: #4b5563;
+}
+
+.stopButton:hover {
+  background-color: #374151;
+}
+
+.pauseButton {
+  composes: button;
+  background-color: #f59e0b;
+}
+
+.pauseButton:hover {
+  background-color: #d97706;
+}
+
+.resumeButton {
+  composes: button;
+  background-color: #10b981;
+}
+
+.resumeButton:hover {
+  background-color: #059669;
+}
+
+.playButton {
+  composes: button;
+  background-color: #3b82f6;
+}
+
+.playButton:hover {
+  background-color: #2563eb;
+}
+
+.downloadButton {
+  composes: button;
+  background-color: #22c55e;
+}
+
+.downloadButton:hover {
+  background-color: #16a34a;
+}
+
+.audioPlayer {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 1rem;
+}
+
+.statusText {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 0.5rem;
+}
