@@ -71,7 +71,7 @@ const draw = (
   const amp = canvas.height / 2; // 캔버스 중앙 높이 계산
 
   // 캔버스 배경을 검정색으로 초기화
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // // 막대에 적용할 수직 그라데이션 생성

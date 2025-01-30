@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, Square, Play, Download, FastForward, Pause } from "lucide-react";
+import { IoMic as Mic, IoSquare as Square, IoPlay as Play, IoDownload as Download, IoPlayForward as FastForward, IoPause as Pause } from "react-icons/io5";
+
+// SVG 아이콘 임포트
 import styles from "./AudioRecorder.module.css";
 
 interface AudioRecorderProps {
