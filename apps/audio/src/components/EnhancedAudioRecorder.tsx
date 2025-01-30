@@ -1,13 +1,21 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { IoMic, IoSquare, IoPlay, IoDownload, IoPause } from "react-icons/io5";
+import { IoMic, IoSquare, IoPlay, IoDownload, IoPause } from 'react-icons/io5';
 import styles from './enhanced-audio-recorder.module.css';
 
 interface AudioRecorderProps {
   onRecordingComplete?: (blob: Blob) => void;
+  barWidth?: number;
+  gap?: number;
 }
 
 interface CustomCanvasRenderingContext2D extends CanvasRenderingContext2D {
-  roundRect: (x: number, y: number, w: number, h: number, radius: number) => void;
+  roundRect: (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    radius: number
+  ) => void;
 }
 
 const calculateBarData = (
@@ -39,21 +47,28 @@ const draw = (
   data: number[],
   canvas: HTMLCanvasElement,
   barWidth: number,
-  gap: number
+  gap: number,
+  isPaused: boolean
 ): void => {
-  const ctx = canvas.getContext("2d") as CustomCanvasRenderingContext2D;
+  const ctx = canvas.getContext('2d') as CustomCanvasRenderingContext2D;
   if (!ctx) return;
 
   const baseHeight = 40;
   const amp = canvas.height / 2;
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-  gradient.addColorStop(0, "#0061ff");
-  gradient.addColorStop(0.5, "#00ff87");
-  gradient.addColorStop(1, "#60efff");
+  if (isPaused) {
+    gradient.addColorStop(0, '#c9cdd2');
+    // gradient.addColorStop(0.5, '#6b7280');
+    // gradient.addColorStop(1, '#4b5563');
+  } else {
+    gradient.addColorStop(0, '#a56ae9'); // 보라색 계열 시작
+    gradient.addColorStop(0.5, '#9057df'); // 중간 톤의 보라
+    gradient.addColorStop(1, '#7741d3'); // 밝은 보라
+  }
 
   const totalBars = Math.floor(canvas.width / (barWidth + gap));
 
@@ -71,14 +86,18 @@ const draw = (
   }
 };
 
-const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComplete }) => {
+const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({
+  onRecordingComplete,
+  barWidth = 2,
+  gap = 5,
+}) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [recordingTime, setRecordingTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -109,18 +128,18 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
     audioContextRef.current = new AudioContext();
     const source = audioContextRef.current.createMediaStreamSource(stream);
     const analyser = audioContextRef.current.createAnalyser();
-    
+
     source.connect(analyser);
     analyserRef.current = analyser;
 
     const animate = () => {
       if (!canvasRef.current || !analyserRef.current) return;
 
-      const frequencyData = new Uint8Array(analyserRef.current.frequencyBinCount);
+      const frequencyData = new Uint8Array(
+        analyserRef.current.frequencyBinCount
+      );
       analyserRef.current.getByteFrequencyData(frequencyData);
 
-      const barWidth = 4;
-      const gap = 2;
       const data = calculateBarData(
         frequencyData,
         canvasRef.current.width,
@@ -128,7 +147,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
         gap
       );
 
-      draw(data, canvasRef.current, barWidth, gap);
+      draw(data, canvasRef.current, barWidth, gap, isPaused);
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
@@ -139,7 +158,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -151,34 +170,34 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
       };
 
       const checkAudioDuration = async (blob: Blob) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = function () {
-        const arrayBuffer = reader.result as ArrayBuffer;
-        const audioContext = new AudioContext();
-        
-        audioContext.decodeAudioData(
-          arrayBuffer,
-          function (buffer) {
-            setAudioDuration(buffer.duration);
-            resolve(buffer.duration);
-          },
-          function (error) {
-            reject("Audio decoding failed: " + error);
-          }
-        );
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = function () {
+            const arrayBuffer = reader.result as ArrayBuffer;
+            const audioContext = new AudioContext();
+
+            audioContext.decodeAudioData(
+              arrayBuffer,
+              function (buffer) {
+                setAudioDuration(buffer.duration);
+                resolve(buffer.duration);
+              },
+              function (error) {
+                reject('Audio decoding failed: ' + error);
+              }
+            );
+          };
+
+          reader.onerror = function (error) {
+            reject('File reading failed: ' + error);
+          };
+
+          reader.readAsArrayBuffer(blob);
+        });
       };
 
-      reader.onerror = function (error) {
-        reject("File reading failed: " + error);
-      };
-
-      reader.readAsArrayBuffer(blob);
-    });
-  };
-
-  mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/mp4" });
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/mp4' });
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
         await checkAudioDuration(blob);
@@ -198,7 +217,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
       setRecordingTime(0);
       startTimer();
     } catch (error) {
-      console.error("Error accessing microphone:", error);
+      console.error('Error accessing microphone:', error);
     }
   }, [onRecordingComplete, startTimer, startVisualization]);
 
@@ -220,15 +239,41 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
   }, [isRecording, stopTimer]);
 
   const pauseRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === 'recording'
+    ) {
       mediaRecorderRef.current.pause();
       setIsPaused(true);
       stopTimer();
+
+      // 현재 상태의 마지막 프레임을 회색으로 다시 그리기
+      if (canvasRef.current && analyserRef.current) {
+        const frequencyData = new Uint8Array(
+          analyserRef.current.frequencyBinCount
+        );
+        analyserRef.current.getByteFrequencyData(frequencyData);
+        const data = calculateBarData(
+          frequencyData,
+          canvasRef.current.width,
+          barWidth,
+          gap
+        );
+        draw(data, canvasRef.current, barWidth, gap, true);
+      }
+
+      // 애니메이션 중지
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     }
   }, [stopTimer]);
 
   const resumeRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "paused") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === 'paused'
+    ) {
       mediaRecorderRef.current.resume();
       setIsPaused(false);
       startTimer();
@@ -248,11 +293,11 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
 
   const handleDownload = () => {
     if (chunksRef.current.length === 0) return;
-    const blob = new Blob(chunksRef.current, { type: "audio/mp4" });
+    const blob = new Blob(chunksRef.current, { type: 'audio/mp4' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = "recording.mp4";
+    a.download = 'recording.mp4';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -260,7 +305,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   useEffect(() => {
@@ -282,7 +327,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
         height={200}
         className={styles.canvas}
       />
-      
+
       <div className={styles.buttonGroup}>
         {!isRecording ? (
           <button
@@ -304,7 +349,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
             <button
               onClick={isPaused ? resumeRecording : pauseRecording}
               className={isPaused ? styles.resumeButton : styles.pauseButton}
-              aria-label={isPaused ? "Resume Recording" : "Pause Recording"}
+              aria-label={isPaused ? 'Resume Recording' : 'Pause Recording'}
             >
               {isPaused ? <IoPlay /> : <IoPause />}
             </button>
@@ -316,7 +361,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
             <button
               onClick={handlePlayPause}
               className={styles.playButton}
-              aria-label={isPlaying ? "Pause" : "Play"}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               <IoPlay />
             </button>
@@ -349,9 +394,9 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({ onRecordingComple
       )}
 
       <p className={styles.statusText}>
-        {isRecording 
-          ? `녹음중입니다. (${formatDuration(recordingTime)})` 
-          : "마이크를 눌러서 시작해주세요."}
+        {isRecording
+          ? `녹음중입니다. (${formatDuration(recordingTime)})`
+          : '마이크를 눌러서 시작해주세요.'}
       </p>
     </div>
   );
