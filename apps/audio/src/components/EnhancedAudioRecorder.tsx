@@ -62,8 +62,6 @@ const draw = (
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
   if (isPaused) {
     gradient.addColorStop(0, '#c9cdd2');
-    // gradient.addColorStop(0.5, '#6b7280');
-    // gradient.addColorStop(1, '#4b5563');
   } else {
     gradient.addColorStop(0, '#a56ae9'); // 보라색 계열 시작
     gradient.addColorStop(0.5, '#9057df'); // 중간 톤의 보라
@@ -243,8 +241,9 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({
       mediaRecorderRef.current &&
       mediaRecorderRef.current.state === 'recording'
     ) {
+      const isPaused = true;
       mediaRecorderRef.current.pause();
-      setIsPaused(true);
+      setIsPaused(isPaused);
       stopTimer();
 
       // 현재 상태의 마지막 프레임을 회색으로 다시 그리기
@@ -259,7 +258,7 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({
           barWidth,
           gap
         );
-        draw(data, canvasRef.current, barWidth, gap, true);
+        draw(data, canvasRef.current, barWidth, gap, isPaused);
       }
 
       // 애니메이션 중지
@@ -274,9 +273,24 @@ const EnhancedAudioRecorder: React.FC<AudioRecorderProps> = ({
       mediaRecorderRef.current &&
       mediaRecorderRef.current.state === 'paused'
     ) {
+      const isPaused = false;
       mediaRecorderRef.current.resume();
-      setIsPaused(false);
+      setIsPaused(isPaused);
       startTimer();
+
+      if (canvasRef.current && analyserRef.current) {
+        const frequencyData = new Uint8Array(
+          analyserRef.current.frequencyBinCount
+        );
+        analyserRef.current.getByteFrequencyData(frequencyData);
+        const data = calculateBarData(
+          frequencyData,
+          canvasRef.current.width,
+          barWidth,
+          gap
+        );
+        draw(data, canvasRef.current, barWidth, gap, isPaused);
+      }
     }
   }, [startTimer]);
 
